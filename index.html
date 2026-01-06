@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Meta tag untuk responsivitas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Menambahkan meta tag untuk responsivitas -->
   <title>Personal Finance Premium</title>
   <script src="./Personal Finance Premium_files/chart.js.download"></script>
   <script src="./Personal Finance Premium_files/html2pdf.js.download"></script>
@@ -10,7 +10,7 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #f1f5f9; color: #0f172a; }
-    .container { max-width: 100%; margin: auto; padding: 0 16px; }
+    .container { max-width: 1100px; margin: auto; }
     .card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(0, 0, 0, .08); }
     h1 { margin: 6px 0; }
     h2 { margin: 0 0 8px; font-size: 18px; }
@@ -20,20 +20,32 @@
     button.gray { background: #334155; }
     .grid { display: grid; gap: 12px; }
     .grid-2 { grid-template-columns: 1fr; }
-    @media (min-width: 768px) {
-      .grid-2 { grid-template-columns: 1fr 1fr; }
-      h1 { font-size: 30px; }
+    @media (min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { /* Untuk layar kecil seperti HP */
+      h1 {
+        font-size: 24px;
+        text-align: center;
+      }
+      .card {
+        padding: 12px;
+      }
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .progress {
+        height: 10px;
+      }
+      .bar {
+        height: 100%;
+      }
+      button {
+        font-size: 14px;
+        padding: 8px;
+      }
+      input, select {
+        font-size: 14px;
+      }
     }
-    @media (max-width: 600px) {
-      h1 { font-size: 24px; text-align: center; }
-      .login-card { width: 90%; }
-      .card { padding: 12px; }
-      button { font-size: 16px; padding: 12px; }
-      input, select { font-size: 14px; padding: 10px; }
-      table { font-size: 12px; }
-      .grid-2 { grid-template-columns: 1fr; }
-    }
-
     .progress { background: #e5e7eb; height: 12px; border-radius: 10px; overflow: hidden; }
     .bar { height: 100%; transition: .3s; }
     .safe { background: #22c55e; }
@@ -44,12 +56,9 @@
     th { background: #f8fafc; text-align: left; }
     .blur span.amount { filter: blur(6px); }
     .small { font-size: 13px; color: #475569; }
-
     .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
     .login-card { width: 300px; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; }
     .login-card input { margin-bottom: 10px; }
-
-    #chart { max-width: 100%; }
   </style>
 </head>
 
@@ -113,7 +122,7 @@
       <h2>➖ Pengeluaran</h2>
       <!-- Dropdown untuk Kategori Pengeluaran -->
       <input type="date" id="outTgl" />
-      <select id="outKat">
+      <select id="outKat" onchange="validateCategory()">
         <option value="" disabled selected>Pilih Kategori</option>
       </select>
       <input id="outNom" placeholder="Nominal (Rp)" />
@@ -124,7 +133,7 @@
 
   <div class="card">
     <h2>📈 Grafik Pengeluaran</h2>
-    <canvas id="chart" width="1072" height="1072"></canvas>
+    <canvas id="chart" width="1072" height="1072" style="display: block; box-sizing: border-box; height: 1072px; width: 1072px;"></canvas>
   </div>
 
   <!-- Tabel Riwayat Transaksi -->
@@ -196,7 +205,7 @@
     updateCategoryDropdown();
   }
 
-  // Menambahkan kategori yang ada ke dropdown untuk pengeluaran
+  // Menambahkan kategori yang ada ke dropdown
   function updateCategoryDropdown() {
     const outKat = document.getElementById("outKat");
     outKat.innerHTML = '<option value="" disabled selected>Pilih Kategori</option>'; // Reset dropdown
