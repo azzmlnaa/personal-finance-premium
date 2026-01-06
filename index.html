@@ -113,7 +113,7 @@
       <h2>➖ Pengeluaran</h2>
       <!-- Dropdown untuk Kategori Pengeluaran -->
       <input type="date" id="outTgl" />
-      <select id="outKat" onchange="validateCategory()">
+      <select id="outKat">
         <option value="" disabled selected>Pilih Kategori</option>
       </select>
       <input id="outNom" placeholder="Nominal (Rp)" />
@@ -196,7 +196,7 @@
     updateCategoryDropdown();
   }
 
-  // Menambahkan kategori yang ada ke dropdown
+  // Menambahkan kategori yang ada ke dropdown untuk pengeluaran
   function updateCategoryDropdown() {
     const outKat = document.getElementById("outKat");
     outKat.innerHTML = '<option value="" disabled selected>Pilih Kategori</option>'; // Reset dropdown
