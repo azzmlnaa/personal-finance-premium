@@ -120,11 +120,9 @@
 
     <div class="card">
       <h2>➖ Pengeluaran</h2>
-      <!-- Dropdown untuk Kategori Pengeluaran -->
+      <!-- Mengubah dropdown menjadi input teks biasa -->
       <input type="date" id="outTgl" />
-      <select id="outKat" onchange="validateCategory()">
-        <option value="" disabled selected>Pilih Kategori</option>
-      </select>
+      <input id="outKat" placeholder="Kategori Pengeluaran (e.g. Makan, Transport)" /> <!-- Input Kategori Pengeluaran -->
       <input id="outNom" placeholder="Nominal (Rp)" />
       <input id="outNote" placeholder="Catatan" /> <!-- Input Catatan untuk Pengeluaran -->
       <button onclick="addOut()">Simpan</button>
@@ -182,11 +180,10 @@
     budget: {}
   };
 
-  let chart, blur = false;
-
   const f = (v) => v.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const p = (v) => Number(v.replace(/\./g, ''));
 
+  // Menghapus dropdown kategori pengeluaran
   bNom.oninput = e => e.target.value = f(e.target.value);
   inNom.oninput = e => e.target.value = f(e.target.value);
   outNom.oninput = e => e.target.value = f(e.target.value);
@@ -207,17 +204,7 @@
 
   // Menambahkan kategori yang ada ke dropdown
   function updateCategoryDropdown() {
-    const outKat = document.getElementById("outKat");
-    outKat.innerHTML = '<option value="" disabled selected>Pilih Kategori</option>'; // Reset dropdown
-
-    // Ambil kategori yang ada di budget untuk bulan yang dipilih
-    const categories = Object.keys(db.budget[m()] || {});
-    categories.forEach(cat => {
-      const option = document.createElement("option");
-      option.value = cat;
-      option.innerText = cat;
-      outKat.appendChild(option);
-    });
+    // Tidak lagi menggunakan dropdown untuk kategori pengeluaran
   }
 
   function addIncome() {
