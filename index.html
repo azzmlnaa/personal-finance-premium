@@ -1,300 +1,351 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Personal Finance Premium</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Personal Finance Premium</title>
+  <script src="./Personal Finance Premium_files/chart.js.download"></script>
+  <script src="./Personal Finance Premium_files/html2pdf.js.download"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2pdf.js"></script>
-
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;padding:16px;
-  font-family:system-ui,sans-serif;
-  background:#f1f5f9;color:#0f172a
-}
-.container{max-width:1100px;margin:auto}
-.card{
-  background:#fff;border-radius:14px;
-  padding:14px;margin-bottom:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,.08)
-}
-h1{margin:6px 0}
-h2{margin:0 0 8px;font-size:18px}
-input,button,select{
-  padding:10px;border-radius:8px;
-  border:1px solid #cbd5e1;width:100%
-}
-button{background:#2563eb;color:#fff;border:none;cursor:pointer}
-button.red{background:#dc2626}
-button.gray{background:#334155}
-
-.grid{display:grid;gap:12px}
-.grid-2{grid-template-columns:1fr}
-@media(min-width:768px){.grid-2{grid-template-columns:1fr 1fr}}
-
-.progress{background:#e5e7eb;height:12px;border-radius:10px;overflow:hidden}
-.bar{height:100%;transition:.3s}
-.safe{background:#22c55e}
-.warn{background:#f59e0b}
-.danger{background:#ef4444}
-
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:8px;border-bottom:1px solid #e5e7eb}
-th{background:#f8fafc;text-align:left}
-
-.blur span.amount{filter:blur(6px)}
-.small{font-size:13px;color:#475569}
-</style>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #f1f5f9; color: #0f172a; }
+    .container { max-width: 1100px; margin: auto; }
+    .card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(0, 0, 0, .08); }
+    h1 { margin: 6px 0; }
+    h2 { margin: 0 0 8px; font-size: 18px; }
+    input, button, select { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; }
+    button { background: #2563eb; color: #fff; border: none; cursor: pointer; }
+    button.red { background: #dc2626; }
+    button.gray { background: #334155; }
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    @media (min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .progress { background: #e5e7eb; height: 12px; border-radius: 10px; overflow: hidden; }
+    .bar { height: 100%; transition: .3s; }
+    .safe { background: #22c55e; }
+    .warn { background: #f59e0b; }
+    .danger { background: #ef4444; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 8px; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f8fafc; text-align: left; }
+    .blur span.amount { filter: blur(6px); }
+    .small { font-size: 13px; color: #475569; }
+    .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .login-card { width: 300px; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; }
+    .login-card input { margin-bottom: 10px; }
+  </style>
 </head>
 
 <body>
 
-<div id="app" class="container">
-
-<h1>📊 Personal Finance Premium</h1>
-<div class="grid grid-2">
-  <button class="gray" onclick="toggleBlur()">👁 Mode Privat</button>
-  <button class="red" onclick="resetData()">🗑 Reset Data</button>
+<!-- Halaman Login -->
+<div id="login" class="login-container">
+  <div class="login-card">
+    <h2>Masukkan PIN</h2>
+    <input type="password" id="pin" placeholder="Masukkan PIN" />
+    <button onclick="checkPin()">Masuk</button>
+    <p id="error-message" style="color: red; display: none;">PIN salah, coba lagi!</p>
+  </div>
 </div>
 
-<div class="card">
-  <h2>📅 Bulan</h2>
-  <input type="month" id="bulan" onchange="render()">
-</div>
+<!-- Halaman Utama (tersembunyi hingga PIN benar) -->
+<div id="app" class="container" style="display: none;">
 
-<div class="card">
-  <h2>📌 Ringkasan</h2>
-  <p>Pemasukan: Rp <span class="amount" id="sumIn">0</span></p>
-  <p>Pengeluaran: Rp <span class="amount" id="sumOut">0</span></p>
-  <p><b>Saldo: Rp <span class="amount" id="saldo">0</span></b></p>
-</div>
-
-<!-- BUDGET PER KATEGORI -->
-<div class="card">
-  <h2>🎯 Budget per Kategori</h2>
+  <h1>📊 Personal Finance Premium</h1>
   <div class="grid grid-2">
-    <input id="bKat" placeholder="Kategori (Makan, Transport)">
-    <input id="bNom" placeholder="Target (Rp)">
-  </div>
-  <button onclick="saveCategoryBudget()">Simpan Budget</button>
-
-  <div id="budgetList"></div>
-</div>
-
-<!-- INPUT -->
-<div class="grid grid-2">
-  <div class="card">
-    <h2>➕ Pemasukan</h2>
-    <input type="date" id="inTgl">
-    <input id="inSrc" placeholder="Sumber">
-    <input id="inNom" placeholder="Nominal (Rp)">
-    <button onclick="addIncome()">Simpan</button>
+    <button class="gray" onclick="toggleBlur()">👁 Mode Privat</button>
+    <button class="red" onclick="resetData()">🗑 Reset Data</button>
   </div>
 
   <div class="card">
-    <h2>➖ Pengeluaran</h2>
-    <input type="date" id="outTgl">
-    <input id="outKat" placeholder="Kategori">
-    <input id="outNom" placeholder="Nominal (Rp)">
-    <button onclick="addOut()">Simpan</button>
+    <h2>📅 Bulan</h2>
+    <input type="month" id="bulan" onchange="render()" />
   </div>
-</div>
 
-<div class="card">
-  <h2>📈 Grafik Pengeluaran</h2>
-  <canvas id="chart"></canvas>
-</div>
+  <div class="card">
+    <h2>📌 Ringkasan</h2>
+    <p>Pemasukan: Rp <span class="amount" id="sumIn">0</span></p>
+    <p>Pengeluaran: Rp <span class="amount" id="sumOut">0</span></p>
+    <p><b>Saldo: Rp <span class="amount" id="saldo">0</span></b></p>
+  </div>
 
-<div class="card">
-  <h2>📑 Riwayat</h2>
-  <table>
-    <thead>
-      <tr><th>Tanggal</th><th>Keterangan</th><th>Nominal</th><th></th></tr>
-    </thead>
-    <tbody id="list"></tbody>
-  </table>
-</div>
+  <!-- BUDGET PER KATEGORI -->
+  <div class="card">
+    <h2>🎯 Budget per Kategori</h2>
+    <div class="grid grid-2">
+      <input id="bKat" placeholder="Kategori (Makan, Transport)" />
+      <input id="bNom" placeholder="Target (Rp)" />
+    </div>
+    <button onclick="saveCategoryBudget()">Simpan Budget</button>
 
-<button onclick="printPDF()">🖨 Cetak PDF</button>
-<button onclick="exportExcel()" style="margin-top:10px;background:#16a34a">
-  📊 Export Excel
-</button>
+    <div id="budgetList"><i class="small">Belum ada budget kategori</i></div>
+  </div>
 
+  <!-- INPUT -->
+  <div class="grid grid-2">
+    <div class="card">
+      <h2>➕ Pemasukan</h2>
+      <input type="date" id="inTgl" />
+      <input id="inSrc" placeholder="Sumber" />
+      <input id="inNom" placeholder="Nominal (Rp)" />
+      <input id="inNote" placeholder="Catatan" /> <!-- Input Catatan -->
+      <button onclick="addIncome()">Simpan</button>
+    </div>
+
+    <div class="card">
+      <h2>➖ Pengeluaran</h2>
+      <!-- Dropdown untuk Kategori Pengeluaran -->
+      <input type="date" id="outTgl" />
+      <select id="outKat" onchange="validateCategory()">
+        <option value="" disabled selected>Pilih Kategori</option>
+      </select>
+      <input id="outNom" placeholder="Nominal (Rp)" />
+      <input id="outNote" placeholder="Catatan" /> <!-- Input Catatan untuk Pengeluaran -->
+      <button onclick="addOut()">Simpan</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Grafik Pengeluaran</h2>
+    <canvas id="chart" width="1072" height="1072" style="display: block; box-sizing: border-box; height: 1072px; width: 1072px;"></canvas>
+  </div>
+
+  <!-- Tabel Riwayat Transaksi -->
+  <div class="card">
+    <h2>📑 Riwayat</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Keterangan</th>
+          <th>Nominal</th>
+          <th>Catatan</th> <!-- Kolom Catatan -->
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <button onclick="printPDF()">🖨 Cetak PDF</button>
+  <button onclick="exportExcel()" style="margin-top: 10px; background: #16a34a">
+    📊 Export Excel
+  </button>
 
 </div>
 
 <script>
-let db = JSON.parse(localStorage.getItem("pf2")) || {
-  income:[],
-  out:[],
-  budget:{}
-};
+  // Function untuk memeriksa PIN
+  function checkPin() {
+    const pinInput = document.getElementById("pin").value;
+    const correctPin = "180604";
 
-let chart, blur=false;
-
-const f=v=>v.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-const p=v=>Number(v.replace(/\./g,''));
-
-bNom.oninput=e=>e.target.value=f(e.target.value);
-inNom.oninput=e=>e.target.value=f(e.target.value);
-outNom.oninput=e=>e.target.value=f(e.target.value);
-
-function save(){localStorage.setItem("pf2",JSON.stringify(db));render()}
-function m(){return bulan.value}
-function byMonth(a){return !m()?a:a.filter(x=>x.t.startsWith(m()))}
-
-function saveCategoryBudget(){
-  if(!m())return alert("Pilih bulan");
-  if(!bKat.value||!bNom.value)return alert("Lengkapi");
-  db.budget[m()] ??= {};
-  db.budget[m()][bKat.value]=p(bNom.value);
-  bKat.value="";bNom.value="";
-  save();
-}
-
-function addIncome(){
-  if(!inTgl.value||!inSrc.value||!inNom.value)return;
-  db.income.push({id:Date.now(),t:inTgl.value,k:inSrc.value,n:p(inNom.value)});
-  inNom.value=""; save();
-}
-
-function addOut(){
-  if(!outTgl.value||!outKat.value||!outNom.value)return;
-  db.out.push({id:Date.now(),t:outTgl.value,k:outKat.value,n:p(outNom.value)});
-  outNom.value=""; save();
-}
-
-function del(id){
-  db.income=db.income.filter(x=>x.id!==id);
-  db.out=db.out.filter(x=>x.id!==id);
-  save();
-}
-
-function resetData(){
-  if(confirm("Hapus semua data?")){
-    localStorage.removeItem("pf2");
-    location.reload();
+    if (pinInput === correctPin) {
+      // Sembunyikan halaman login dan tampilkan halaman utama
+      document.getElementById("login").style.display = "none";
+      document.getElementById("app").style.display = "block";
+    } else {
+      // Tampilkan pesan error jika PIN salah
+      document.getElementById("error-message").style.display = "block";
+    }
   }
-}
 
-function toggleBlur(){
-  blur=!blur; app.classList.toggle("blur",blur);
-}
+  let db = JSON.parse(localStorage.getItem("pf2")) || {
+    income: [],
+    out: [],
+    budget: {}
+  };
 
-function render(){
-  let inc=byMonth(db.income);
-  let out=byMonth(db.out);
+  let chart, blur = false;
 
-  let ti=inc.reduce((a,b)=>a+b.n,0);
-  let to=out.reduce((a,b)=>a+b.n,0);
+  const f = (v) => v.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const p = (v) => Number(v.replace(/\./g, ''));
 
-  sumIn.innerText=ti.toLocaleString("id-ID");
-  sumOut.innerText=to.toLocaleString("id-ID");
-  saldo.innerText=(ti-to).toLocaleString("id-ID");
+  bNom.oninput = e => e.target.value = f(e.target.value);
+  inNom.oninput = e => e.target.value = f(e.target.value);
+  outNom.oninput = e => e.target.value = f(e.target.value);
 
-  renderBudget(out);
-  renderChart(out);
-  renderTable(inc,out);
-}
+  function save() { localStorage.setItem("pf2", JSON.stringify(db)); render(); }
+  function m() { return bulan.value; }
+  function byMonth(a) { return !m() ? a : a.filter(x => x.t.startsWith(m())); }
 
-function renderBudget(out){
-  let b=db.budget[m()]||{};
-  let html="";
-  for(let k in b){
-    let used=out.filter(x=>x.k===k).reduce((a,b)=>a+b.n,0);
-    let pct=Math.min(used/b[k]*100,100);
-    let cls=pct<80?"safe":pct<100?"warn":"danger";
-    html+=`
-      <div class="small">${k} — Rp ${used.toLocaleString()} / ${b[k].toLocaleString()}</div>
-      <div class="progress"><div class="bar ${cls}" style="width:${pct}%"></div></div>
-    `;
+  function saveCategoryBudget() {
+    if (!m()) return alert("Pilih bulan");
+    if (!bKat.value || !bNom.value) return alert("Lengkapi");
+    db.budget[m()] ??= {};
+    db.budget[m()][bKat.value] = p(bNom.value);
+    bKat.value = ""; bNom.value = "";
+    save();
+    updateCategoryDropdown();
   }
-  budgetList.innerHTML=html||"<i class='small'>Belum ada budget kategori</i>";
-}
 
-function renderChart(o){
-  let m={}; o.forEach(x=>m[x.k]=(m[x.k]||0)+x.n);
-  if(chart)chart.destroy();
-  chart=new Chart(chartEl,{
-    type:"pie",
-    data:{labels:Object.keys(m),datasets:[{data:Object.values(m)}]}
-  });
-}
+  // Menambahkan kategori yang ada ke dropdown
+  function updateCategoryDropdown() {
+    const outKat = document.getElementById("outKat");
+    outKat.innerHTML = '<option value="" disabled selected>Pilih Kategori</option>'; // Reset dropdown
 
-function renderTable(inc,out){
-  let r=[];
-  inc.forEach(x=>r.push({...x,n:x.n}));
-  out.forEach(x=>r.push({...x,n:-x.n}));
-  r.sort((a,b)=>a.t.localeCompare(b.t));
-  list.innerHTML=r.map(x=>`
-    <tr>
-      <td>${x.t}</td>
-      <td>${x.k}</td>
-      <td style="color:${x.n<0?'red':'green'}">
-        Rp <span class="amount">${Math.abs(x.n).toLocaleString()}</span>
-      </td>
-      <td><button class="red" onclick="del(${x.id})">🗑</button></td>
-    </tr>
-  `).join("");
-}
-
-function printPDF(){
-  const el = document.getElementById("app");
-
-  // Tunggu chart selesai render
-  setTimeout(() => {
-    html2pdf(el, {
-      margin: 10,
-      filename: "Personal-Finance.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        scrollY: 0
-      },
-      jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait"
-      }
+    // Ambil kategori yang ada di budget untuk bulan yang dipilih
+    const categories = Object.keys(db.budget[m()] || {});
+    categories.forEach(cat => {
+      const option = document.createElement("option");
+      option.value = cat;
+      option.innerText = cat;
+      outKat.appendChild(option);
     });
-  }, 600); // delay WAJIB
-}
+  }
 
-function exportExcel(){
-  const inc = byMonth(db.income);
-  const out = byMonth(db.out);
+  function addIncome() {
+    if (!inTgl.value || !inSrc.value || !inNom.value) return;
+    const note = inNote.value || "";
 
-  let rows = [];
-  rows.push(["Tanggal","Jenis","Kategori / Sumber","Nominal"]);
+    db.income.push({
+      id: Date.now(),
+      t: inTgl.value,
+      k: inSrc.value,
+      n: p(inNom.value),
+      note: note
+    });
 
-  inc.forEach(x=>{
-    rows.push([x.t,"Pemasukan",x.k,x.n]);
-  });
+    inNom.value = "";
+    inNote.value = "";
+    save();
+  }
 
-  out.forEach(x=>{
-    rows.push([x.t,"Pengeluaran",x.k,-x.n]);
-  });
+  function addOut() {
+    if (!outTgl.value || !outKat.value || !outNom.value) return;
+    const note = outNote.value || "";
+    db.out.push({ id: Date.now(), t: outTgl.value, k: outKat.value, n: p(outNom.value), note: note });
+    outNom.value = ""; outNote.value = ""; save();
+  }
 
-  let csv = rows.map(r=>r.join(",")).join("\n");
+  function del(id) {
+    db.income = db.income.filter(x => x.id !== id);
+    db.out = db.out.filter(x => x.id !== id);
+    save();
+  }
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  function resetData() {
+    if (confirm("Hapus semua data?")) {
+      localStorage.removeItem("pf2");
+      location.reload();
+    }
+  }
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Personal-Finance-${bulan.value || "all"}.csv`;
-  a.click();
+  function toggleBlur() {
+    blur = !blur; app.classList.toggle("blur", blur);
+  }
 
-  URL.revokeObjectURL(url);
-}
+  function render() {
+    let inc = byMonth(db.income);
+    let out = byMonth(db.out);
 
+    let ti = inc.reduce((a, b) => a + b.n, 0);
+    let to = out.reduce((a, b) => a + b.n, 0);
 
-const chartEl=document.getElementById("chart");
-render();
+    sumIn.innerText = ti.toLocaleString("id-ID");
+    sumOut.innerText = to.toLocaleString("id-ID");
+    saldo.innerText = (ti - to).toLocaleString("id-ID");
+
+    renderBudget(out);
+    renderChart(out);
+    renderTable(inc, out);
+  }
+
+  function renderBudget(out) {
+    let b = db.budget[m()] || {};
+    let html = "";
+    for (let k in b) {
+      let used = out.filter(x => x.k === k).reduce((a, b) => a + b.n, 0);
+      let pct = Math.min(used / b[k] * 100, 100);
+      let cls = pct < 80 ? "safe" : pct < 100 ? "warn" : "danger";
+      html += `
+        <div class="small">${k} — Rp ${used.toLocaleString()} / ${b[k].toLocaleString()}</div>
+        <div class="progress"><div class="bar ${cls}" style="width:${pct}%"></div></div>
+      `;
+    }
+    budgetList.innerHTML = html || "<i class='small'>Belum ada budget kategori</i>";
+  }
+
+  function renderChart(o) {
+    let m = {}; o.forEach(x => m[x.k] = (m[x.k] || 0) + x.n);
+    if (chart) chart.destroy();
+    chart = new Chart(chartEl, {
+      type: "pie",
+      data: { labels: Object.keys(m), datasets: [{ data: Object.values(m) }] }
+    });
+  }
+
+  function renderTable(inc, out) {
+    let r = [];
+    inc.forEach(x => r.push({ ...x, n: x.n }));
+    out.forEach(x => r.push({ ...x, n: -x.n }));
+    r.sort((a, b) => a.t.localeCompare(b.t));
+
+    list.innerHTML = r.map(x => `
+      <tr>
+        <td>${x.t}</td>
+        <td>${x.k}</td>
+        <td style="color:${x.n < 0 ? 'red' : 'green'}">
+          Rp <span class="amount">${Math.abs(x.n).toLocaleString()}</span>
+        </td>
+        <td>${x.note || '-'}</td>
+        <td><button class="red" onclick="del(${x.id})">🗑</button></td>
+      </tr>
+    `).join("");
+  }
+
+  function printPDF() {
+    const el = document.getElementById("app");
+
+    setTimeout(() => {
+      html2pdf(el, {
+        margin: 10,
+        filename: "Personal-Finance.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          scrollY: 0
+        },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait"
+        }
+      });
+    }, 600);
+  }
+
+  function exportExcel() {
+    const inc = byMonth(db.income);
+    const out = byMonth(db.out);
+
+    let rows = [];
+    rows.push(["Tanggal", "Jenis", "Kategori / Sumber", "Nominal"]);
+
+    inc.forEach(x => {
+      rows.push([x.t, "Pemasukan", x.k, x.n]);
+    });
+
+    out.forEach(x => {
+      rows.push([x.t, "Pengeluaran", x.k, -x.n]);
+    });
+
+    let csv = rows.map(r => r.join(",")).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Personal-Finance-${bulan.value || "all"}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  const chartEl = document.getElementById("chart");
+  render();
 </script>
-
 </body>
 </html>
